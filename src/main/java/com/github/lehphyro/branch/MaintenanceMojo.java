@@ -11,11 +11,19 @@ import org.apache.maven.project.*;
 import org.codehaus.plexus.util.*;
 
 /**
+ * Creates maintenance branches for previously released versions.
  * 
  * @author leandro.aparecido
  * @goal maintenance
  */
 public class MaintenanceMojo extends AbstractMojo {
+	/**
+	 * Version to base the branch on. Defaults to latest release.
+	 * 
+	 * @parameter expression="${baseVersion}"
+	 */
+	protected String baseVersion;
+
 	/**
 	 * The Maven Project Object
 	 * 
@@ -44,18 +52,37 @@ public class MaintenanceMojo extends AbstractMojo {
 
 	@Override
 	public void execute() throws MojoExecutionException, MojoFailureException {
-		executeMojo(plugin(groupId("org.codehaus.mojo"), artifactId("build-helper-maven-plugin"), version("1.7")), goal("released-version"),
-				configuration(), executionEnvironment(project, session, pluginManager));
+		String releasedMajor;
+		String releasedMinor;
+		String releasedIncremental;
 
-		String releasedMajor = project.getProperties().getProperty("releasedVersion.majorVersion");
-		String releasedMinor = project.getProperties().getProperty("releasedVersion.minorVersion");
-		String releasedIncremental = project.getProperties().getProperty("releasedVersion.incrementalVersion");
+		if (baseVersion == null) {
+			executeMojo(plugin(groupId("org.codehaus.mojo"), artifactId("build-helper-maven-plugin"), version("1.7")), goal("released-version"),
+					configuration(), executionEnvironment(project, session, pluginManager));
+	
+			releasedMajor = project.getProperties().getProperty("releasedVersion.majorVersion");
+			releasedMinor = project.getProperties().getProperty("releasedVersion.minorVersion");
+			releasedIncremental = project.getProperties().getProperty("releasedVersion.incrementalVersion");
+		} else {
+			String[] parts = baseVersion.split("\\.");
+			if (parts.length < 2) {
+				throw new MojoExecutionException("Invalid version: " + baseVersion);
+			} else {
+				if (parts.length > 2) {
+					releasedIncremental = parts[2];
+				} else {
+					releasedIncremental = null;
+				}
+				releasedMinor = parts[1];
+				releasedMajor = parts[0];
+			}
+		}
 
 		if (releasedMajor == null) {
 			throw new MojoExecutionException("No release found for this project, cannot create maintenance branch");
 		}
 
-		getLog().info(String.format("Lastest release version is [%s]", calculateReleaseVersion(releasedMajor, releasedMinor, releasedIncremental)));
+		getLog().info(String.format("Release version is [%s]", calculateReleaseVersion(releasedMajor, releasedMinor, releasedIncremental)));
 
 		String tagName = calculateTagName(releasedMajor, releasedMinor, releasedIncremental);
 		getLog().info(String.format("Creating branch from tag [%s]", tagName));
