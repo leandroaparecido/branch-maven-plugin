@@ -236,15 +236,16 @@ public class MaintenanceMojo extends AbstractMojo {
 			parts.add("cmd.exe");
 			parts.add("/X");
 			parts.add("/C");
-		}
-		osName = osName.toLowerCase();
-		if (osName.contains("windows")) {
-			parts.add("cmd.exe");
-			parts.add("/X");
-			parts.add("/C");
 		} else {
-			parts.add("sh");
-			parts.add("-c");
+			osName = osName.toLowerCase();
+			if (osName.contains("windows")) {
+				parts.add("cmd.exe");
+				parts.add("/X");
+				parts.add("/C");
+			} else {
+				parts.add("sh");
+				parts.add("-c");
+			}
 		}
 		parts.add(command);
 
