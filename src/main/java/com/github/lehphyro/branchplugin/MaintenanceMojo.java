@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.branchplugin;
+package com.github.lehphyro.branchplugin;
 
 import static org.twdata.maven.mojoexecutor.MojoExecutor.*;
 
